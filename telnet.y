@@ -26,16 +26,19 @@ input:
 line:
     iac_line NEWLINE     { printf("[IAC] %s\n", $1); free($1); }
   | body NEWLINE         { printf("[Body] %s\n", $1); free($1); }
-  | NEWLINE              { /* blank */ }
+  | NEWLINE              { /* blank line */ }
   ;
 
 iac_line:
     IAC command option {
-        size_t n=strlen($2)+strlen($3)+2;
-        char *s=malloc(n);
-        snprintf(s,n,"%s %s",$2,$3);
-        free($2); free($3);
-        $$=s;
+        size_t n = strlen($2) + strlen($3) + 2;
+        char *s = malloc(n);
+        if (s) {
+            snprintf(s, n, "%s %s", $2, $3);
+        }
+        free($2);
+        free($3);
+        $$ = s;
     }
   ;
 
@@ -54,15 +57,22 @@ option:
 body:
     WORD { $$ = $1; }
   | body WORD {
-        size_t n = strlen($1)+strlen($2)+2;
+        size_t n = strlen($1) + strlen($2) + 2;
         char *s = malloc(n);
-        snprintf(s,n,"%s %s",$1,$2);
-        free($1); free($2);
+        if (s) {
+            snprintf(s, n, "%s %s", $1, $2);
+        }
+        free($1);
+        free($2);
         $$ = s;
     }
   ;
 
 %%
 
-void yyerror(const char *s) { fprintf(stderr,"Parse error: %s\n", s); }
-int main(void) { return yyparse(); }
+void yyerror(const char *s) {
+    fprintf(stderr, "Parse error: %s\n", s);
+}
+int main(void) {
+    return yyparse();
+}
